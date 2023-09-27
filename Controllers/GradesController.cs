@@ -1,8 +1,10 @@
 ﻿using ManageCollege.Data;
 using ManageCollege.Models.Domain;
 using ManageCollege.Models.DTO;
+using ManageCollege.Repositories.Implementation;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.EntityFrameworkCore;
 
 namespace ManageCollege.Controllers
 {
@@ -41,6 +43,15 @@ namespace ManageCollege.Controllers
             };
 
             return Ok(response);
+
+        }
+
+        [HttpGet]
+        public async Task<IActionResult> GetGrades()
+        {
+            var grades = await dbContext.Grades.ToListAsync();
+
+            return Ok(grades);
 
         }
     }

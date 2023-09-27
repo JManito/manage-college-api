@@ -47,6 +47,14 @@ namespace ManageCollege.Controllers
             return Ok(response);
 
         }
+        [HttpGet]
+        public async Task<IActionResult> GetStudents()
+        {
+            var students = await dbContext.Students.ToListAsync();
+
+            return Ok(students);
+
+        }
     }
 }
 

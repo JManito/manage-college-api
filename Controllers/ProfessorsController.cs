@@ -3,6 +3,7 @@ using ManageCollege.Models.Domain;
 using ManageCollege.Models.DTO;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.EntityFrameworkCore;
 
 namespace ManageCollege.Controllers
 {
@@ -43,6 +44,14 @@ namespace ManageCollege.Controllers
             };
 
             return Ok(response);
+
+        }
+        [HttpGet]
+        public async Task<IActionResult> GetProfessors()
+        {
+            var professors = await dbContext.Professors.ToListAsync();
+
+            return Ok(professors);
 
         }
     }

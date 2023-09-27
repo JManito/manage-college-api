@@ -3,6 +3,7 @@ using ManageCollege.Models.Domain;
 using ManageCollege.Models.DTO;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.EntityFrameworkCore;
 
 namespace ManageCollege.Controllers
 {
@@ -42,28 +43,11 @@ namespace ManageCollege.Controllers
         }
 
         [HttpGet]
-        public async Task<IActionResult> GetCourse(GetCourseRequestDTO request)
+        public async Task<IActionResult> GetCourse()
         {
-          
-            //Map DTO to Domain Model.. see GetCourseRequestDTO 
-            var course = new Courses
-            {
-                Id = request.Id,
-                CourseName = request.CourseName
-            };
+           var courses = await dbContext.Courses.ToListAsync();
 
-            await dbContext.Courses.AddAsync(course);
-            await dbContext.SaveChangesAsync();
-
-
-            //Domain model to DTO
-            var response = new CourseDTO
-            {
-                Id = course.Id,
-                CourseName = course.CourseName
-            };
-
-            return Ok(response);
+           return Ok(courses);
 
         }
 
