@@ -4,6 +4,7 @@ using ManageCollege.Models.DTO;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
+using System.Text.RegularExpressions;
 
 namespace ManageCollege.Controllers
 {
@@ -26,6 +27,21 @@ namespace ManageCollege.Controllers
             {
                 CourseName = request.CourseName
             };
+
+            var courses = await dbContext.Courses.ToListAsync();
+            var regexItem = new Regex("^[a-zA-Z0-9 ]*$");
+            var regexEmpty = new Regex("^(?!$).+");
+
+
+            foreach ( var k in courses)
+            {
+
+                if (regexEmpty.IsMatch(request.CourseName) || Regex.Replace(k.CourseName, "[^0-9]", "").Equals(request.CourseName) || k.CourseName.ToLower() == request.CourseName.ToLower() || (regexItem.IsMatch(request.CourseName)))
+                {
+                    return Ok();
+                }
+
+            }
 
             await dbContext.Courses.AddAsync(course);
             await dbContext.SaveChangesAsync();
@@ -50,7 +66,5 @@ namespace ManageCollege.Controllers
            return Ok(courses);
 
         }
-
-
     }
 }
