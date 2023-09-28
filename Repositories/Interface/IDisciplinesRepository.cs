@@ -6,6 +6,7 @@ namespace ManageCollege.Repositories.Interface
     {
         Task<Disciplines> Createasync(Disciplines disciplines);
         Task<List<Disciplines>> Getasync();
+        Task<Disciplines> GetDisciplineAsync(int id);
         Task<Disciplines> Putasync(Disciplines disciplines);
         Task<Disciplines> Deleteasync(int id);
 

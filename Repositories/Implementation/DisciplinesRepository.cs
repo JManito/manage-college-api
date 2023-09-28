@@ -30,6 +30,16 @@ namespace ManageCollege.Repositories.Implementation
             return discipline;
 
         }
+
+        public async Task<Disciplines> GetDisciplineAsync(int id)
+        {
+            var discipline = await dbContext.Disciplines.ToListAsync();
+        
+            Disciplines disciplineselected = discipline.FirstOrDefault(discipline => discipline.DisciplineId == id);
+
+            return disciplineselected;
+
+        }
         public async Task<Disciplines> Putasync(Disciplines disciplines, int id)
         {
 

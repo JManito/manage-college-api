@@ -1,6 +1,7 @@
 ﻿using ManageCollege.Data;
 using ManageCollege.Models.Domain;
 using ManageCollege.Models.DTO;
+using ManageCollege.Repositories.Implementation;
 using ManageCollege.Repositories.Interface;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
@@ -57,9 +58,25 @@ namespace ManageCollege.Controllers
 
         }
 
+        [HttpGet]
+        [Route("{id:int}")]
+        public async Task<IActionResult> GetDiscipline([FromRoute] int id)
+        {
+
+            var discipline = await disciplinesRepository.GetDisciplineAsync(id);
+
+            if (discipline == null)
+            {
+                return NotFound();
+            }
+
+            return Ok(discipline);
+
+        }
+
 
         [HttpPut]
-        public async Task<IActionResult> EditCourse(DisciplineDTO request, int id)
+        public async Task<IActionResult> EditDiscipline(DisciplineDTO request, int id)
         {
             //Map DTO to Domain Model
             var discipline = new DisciplineDTO

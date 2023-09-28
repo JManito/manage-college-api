@@ -39,7 +39,7 @@ namespace ManageCollege.Controllers
             foreach ( var k in courses)
             {
 
-                if (regexEmpty.IsMatch(request.CourseName) || Regex.Replace(k.CourseName, "[^0-9]", "").Equals(request.CourseName) || k.CourseName.ToLower() == request.CourseName.ToLower() || (regexItem.IsMatch(request.CourseName)))
+                if (Regex.Replace(k.CourseName, "[^0-9]", "").Equals(request.CourseName) || k.CourseName.ToLower() == request.CourseName.ToLower() )
                 {
                     return Ok();
                 }
