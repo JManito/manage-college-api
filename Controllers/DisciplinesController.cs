@@ -57,7 +57,6 @@ namespace ManageCollege.Controllers
 
         }
 
-        // POST: /Dinners/Edit/2
 
         [HttpPut]
         public async Task<IActionResult> EditCourse(DisciplineDTO request, int id)

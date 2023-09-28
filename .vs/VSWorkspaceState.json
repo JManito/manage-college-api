@@ -1,8 +1,16 @@
 {
   "ExpandedNodes": [
     "",
-    "\\Migrations"
+    "\\Controllers",
+    "\\Data",
+    "\\Models",
+    "\\Models\\Domain",
+    "\\Models\\DTO",
+    "\\Properties",
+    "\\Repositories",
+    "\\Repositories\\Implementation",
+    "\\Repositories\\Interface"
   ],
-  "SelectedNode": "\\Migrations\\20230926145338_Initial Migration.cs",
+  "SelectedNode": "\\ManageCollege.sln",
   "PreviewInSolutionExplorer": false
 }

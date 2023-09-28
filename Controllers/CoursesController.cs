@@ -1,9 +1,11 @@
 ﻿using ManageCollege.Data;
 using ManageCollege.Models.Domain;
 using ManageCollege.Models.DTO;
+using ManageCollege.Repositories.Implementation;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
+using Swagger.Net;
 using System.Text.RegularExpressions;
 
 namespace ManageCollege.Controllers
@@ -28,11 +30,12 @@ namespace ManageCollege.Controllers
                 CourseName = request.CourseName
             };
 
+            //Get all courses
             var courses = await dbContext.Courses.ToListAsync();
+            //Declare filters
             var regexItem = new Regex("^[a-zA-Z0-9 ]*$");
             var regexEmpty = new Regex("^(?!$).+");
-
-
+            //Validate entry so that there are no duplicates
             foreach ( var k in courses)
             {
 
@@ -42,7 +45,7 @@ namespace ManageCollege.Controllers
                 }
 
             }
-
+            //Post new entry
             await dbContext.Courses.AddAsync(course);
             await dbContext.SaveChangesAsync();
 
@@ -64,6 +67,58 @@ namespace ManageCollege.Controllers
            var courses = await dbContext.Courses.ToListAsync();
 
            return Ok(courses);
+
+        }
+      
+
+        [HttpGet]
+        [Route("{id:int}")]
+        public async Task<IActionResult> GetCourse([FromRoute] int id)
+        {
+
+            var course = await dbContext.Courses.FirstOrDefaultAsync(x => x.Id == id);
+
+            if(course == null)
+            {
+                return NotFound();
+            }
+
+            return Ok(course);
+
+        }
+
+        [HttpPut]
+        [Route("{id}")]
+        public async Task<IActionResult> UpdateCourse([FromRoute] int id, UpdateCourseRequestDTO updateCourseRequest)
+        {
+            var course = await dbContext.Courses.FindAsync(id);
+            if(course != null) { 
+            
+                course.CourseName = updateCourseRequest.CourseName;
+
+                await dbContext.SaveChangesAsync();
+
+                return Ok(course);
+
+            }
+            return NotFound();
+        }
+        [HttpDelete]
+        [Route("{id}")]
+        public async Task<IActionResult> DeleteCourse([FromRoute] int id)
+        {
+            var course = await dbContext.Courses.FindAsync(id);
+            if (course != null)
+            {
+
+                dbContext.Remove(course);
+
+                await dbContext.SaveChangesAsync();
+
+                return Ok(course);
+
+            }
+            return NotFound();
 
         }
     }
