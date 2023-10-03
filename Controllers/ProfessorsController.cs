@@ -1,6 +1,7 @@
 ﻿using ManageCollege.Data;
 using ManageCollege.Models.Domain;
 using ManageCollege.Models.DTO;
+using ManageCollege.Repositories.Interface;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
@@ -11,16 +12,18 @@ namespace ManageCollege.Controllers
     [ApiController]
     public class ProfessorsController : ControllerBase
     {
-        private readonly ApplicationDBContext dbContext;
-        public ProfessorsController(ApplicationDBContext dbContext)
+
+        private readonly IRepository professorsRepository;
+
+        public ProfessorsController(IRepository professorsRepository)
         {
-            this.dbContext = dbContext;
+            this.professorsRepository = professorsRepository;
         }
 
         [HttpPost]
         public async Task<IActionResult> CreateProfessor(CreateProfessorRequestDTO request)
         {
-            //Map DTO to Domain Model so that the response doesn't return the final user the model structure
+            //Map DTO to Domain Model
             var professor = new Professors
             {
                 ProfessorName = request.ProfessorName,
@@ -28,10 +31,8 @@ namespace ManageCollege.Controllers
                 Salary = request.Salary
             };
 
-
-
-            await dbContext.Professors.AddAsync(professor);
-            await dbContext.SaveChangesAsync();
+            //---EDIT
+            await professorsRepository.CreateProfessorAsync(professor);
 
 
             //Domain model to DTO
@@ -47,12 +48,64 @@ namespace ManageCollege.Controllers
 
         }
         [HttpGet]
-        public async Task<IActionResult> GetProfessors()
+        public async Task<IActionResult> Getprofessors()
         {
-            var professors = await dbContext.Professors.ToListAsync();
+            //---EDIT
+            var professors = await professorsRepository.GetProfessorsAsync();
 
             return Ok(professors);
 
         }
+
+        [HttpGet]
+        [Route("{id:int}")]
+        public async Task<IActionResult> GetProfessor([FromRoute] int id)
+        {
+            //---EDIT
+
+            var professor = await professorsRepository.GetProfessorAsync(id);
+
+            if (professor == null)
+            {
+                return NotFound();
+            }
+
+            return Ok(professor);
+
+        }
+
+        [HttpPut]
+        [Route("{id}")]
+        public async Task<IActionResult> UpdateProfessor([FromRoute] int id, Professors request)
+        {
+            //---EDIT
+
+            var professor = await professorsRepository.EditProfessorAsync(request, id);
+
+            if (professor == null)
+            {
+                return NotFound();
+            }
+
+            return Ok(professor);
+
+        }
+        [HttpDelete]
+        [Route("{id}")]
+        public async Task<IActionResult> DeleteProfessor([FromRoute] int id)
+        {
+            //---EDIT
+
+            var professor = await professorsRepository.DeleteProfessorAsync(id);
+
+            if (professor != null)
+            {
+                return Ok(professor);
+
+            }
+            return NotFound("Doesn't Exist or has already been deleted");
+
+        }
+
     }
 }

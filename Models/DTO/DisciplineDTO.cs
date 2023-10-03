@@ -7,6 +7,7 @@ namespace ManageCollege.Models.DTO
         public int DisciplineId { get; set; }
         public string DisciplineName { get; set; }
         public int ProfessorId { get; set; }
+        public int CourseId { get; set; }
     }
 }
 

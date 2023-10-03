@@ -2,6 +2,7 @@
 using ManageCollege.Data;
 using ManageCollege.Models.Domain;
 using ManageCollege.Models.DTO;
+using ManageCollege.Repositories.Interface;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
@@ -12,10 +13,11 @@ namespace ManageCollege.Controllers
     [ApiController]
     public class StudentsController : ControllerBase
     {
-        private readonly ApplicationDBContext dbContext;
-        public StudentsController(ApplicationDBContext dbContext)
+        private readonly IRepository studentsRepository;
+
+        public StudentsController(IRepository studentsRepository)
         {
-            this.dbContext = dbContext;
+            this.studentsRepository = studentsRepository;
         }
 
         [HttpPost]
@@ -25,14 +27,12 @@ namespace ManageCollege.Controllers
             var student = new Students
             {
                 StudentName = request.StudentName,
+                EnrollmentNumber = request.EnrollmentNumber,
                 DateOfBirth = request.DateOfBirth,
-                EnrollmentNumber = request.EnrollmentNumber
             };
 
-
-
-            await dbContext.Students.AddAsync(student);
-            await dbContext.SaveChangesAsync();
+            
+            await studentsRepository.CreateStudentAsync(student);
 
 
             //Domain model to DTO
@@ -50,11 +50,63 @@ namespace ManageCollege.Controllers
         [HttpGet]
         public async Task<IActionResult> GetStudents()
         {
-            var students = await dbContext.Students.ToListAsync();
+            
+            var students = await studentsRepository.GetStudentsAsync();
 
             return Ok(students);
 
         }
+
+        [HttpGet]
+        [Route("{id:int}")]
+        public async Task<IActionResult> GetStudent([FromRoute] int id)
+        {
+            
+
+            var student = await studentsRepository.GetStudentAsync(id);
+
+            if (student == null)
+            {
+                return NotFound();
+            }
+
+            return Ok(student);
+
+        }
+
+        [HttpPut]
+        [Route("{id}")]
+        public async Task<IActionResult> UpdateStudent([FromRoute] int id, Students request)
+        {
+            
+
+            var student = await studentsRepository.EditStudentAsync(request, id);
+
+            if (student == null)
+            {
+                return NotFound();
+            }
+
+            return Ok(student);
+
+        }
+        [HttpDelete]
+        [Route("{id}")]
+        public async Task<IActionResult> DeleteStudent([FromRoute] int id)
+        {
+            
+
+            var student = await studentsRepository.DeleteStudentAsync(id);
+
+            if (student != null)
+            {
+                return Ok(student);
+
+            }
+            return NotFound("Doesn't Exist or has already been deleted");
+
+        }
+
     }
 }
 

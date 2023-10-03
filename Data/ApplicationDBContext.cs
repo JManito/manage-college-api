@@ -13,5 +13,6 @@ namespace ManageCollege.Data
         public DbSet<Grades> Grades { get; set; }
         public DbSet<Professors> Professors { get; set; }
         public DbSet<Students> Students { get; set; }
+        public DbSet<Enrollment> Enrollment { get; set; }
     }
 }

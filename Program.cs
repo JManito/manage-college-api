@@ -18,7 +18,7 @@ builder.Services.AddDbContext<ApplicationDBContext>(options =>
     options.UseSqlServer(builder.Configuration.GetConnectionString("ManageCollegeConnectionSting"));
 });
 
-builder.Services.AddScoped<IDisciplinesRepository, DisciplinesRepository>();
+builder.Services.AddScoped<IRepository, Repository>();
 
 var app = builder.Build();
 

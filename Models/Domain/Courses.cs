@@ -11,4 +11,16 @@ namespace ManageCollege.Models.Domain
         public string CourseName { get; set; }
 
     }
+    public class CourseList
+    {
+        [Key]
+        public int Id { get; private set; }
+
+        public string CourseName { get; private set; }
+
+        public int CourseDisciplineID { get; private set; }
+        public int CourseDisciplineName { get; private set; }
+        public int CourseProfessorID { get; private set; }
+        public string CourseProfessor { get; private set; }
+    }
 }

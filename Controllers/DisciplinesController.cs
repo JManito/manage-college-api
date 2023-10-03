@@ -1,4 +1,5 @@
-﻿using ManageCollege.Data;
+﻿using Azure.Core;
+using ManageCollege.Data;
 using ManageCollege.Models.Domain;
 using ManageCollege.Models.DTO;
 using ManageCollege.Repositories.Implementation;
@@ -17,9 +18,9 @@ namespace ManageCollege.Controllers
     public class DisciplinesController : ControllerBase
     {
        
-        private readonly IDisciplinesRepository disciplinesRepository;
+        private readonly IRepository disciplinesRepository;
 
-        public DisciplinesController(IDisciplinesRepository disciplinesRepository)
+        public DisciplinesController(IRepository disciplinesRepository)
         {
             this.disciplinesRepository = disciplinesRepository;
         }
@@ -31,10 +32,11 @@ namespace ManageCollege.Controllers
             var discipline = new Disciplines
             {
                 DisciplineName = request.DisciplineName,
-                ProfessorId = request.ProfessorId
+                ProfessorId = request.ProfessorId,
+                CourseId = request.CourseId,
             };
 
-            await disciplinesRepository.Createasync(discipline);
+            await disciplinesRepository.CreateDisciplineAsync(discipline);
 
 
             //Domain model to DTO
@@ -42,17 +44,18 @@ namespace ManageCollege.Controllers
             {
                 DisciplineId = discipline.DisciplineId,
                 DisciplineName = discipline.DisciplineName,
-                ProfessorId = discipline.ProfessorId
+                ProfessorId = discipline.ProfessorId,
+                CourseId = discipline.CourseId
             };
 
             return Ok(response);
 
         }
         [HttpGet]
-        public async Task<IActionResult> GetDiscipline()
+        public async Task<IActionResult> GetDisciplines()
         {
 
-            var disciplines = await disciplinesRepository.Getasync();
+            var disciplines = await disciplinesRepository.GetDisciplinesAsync();
 
             return Ok(disciplines);
 
@@ -74,24 +77,36 @@ namespace ManageCollege.Controllers
 
         }
 
-
         [HttpPut]
-        public async Task<IActionResult> EditDiscipline(DisciplineDTO request, int id)
+        [Route("{id}")]
+        public async Task<IActionResult> UpdateDiscipline([FromRoute] int id, Disciplines request)
         {
-            //Map DTO to Domain Model
-            var discipline = new DisciplineDTO
+
+            var discipline = await disciplinesRepository.EditDisciplineAsync(request, id);
+
+            if (discipline == null)
             {
-                DisciplineId = request.DisciplineId,
-                DisciplineName = request.DisciplineName,
-                ProfessorId = request.ProfessorId
-            };
-            return null;
-            /*
-            await disciplinesRepository.Putasync(request);
+                return NotFound();
+            }
 
+            return Ok(discipline);
 
-            return RedirectToAction("Details", new { id = incoming.DinnerID });*/
         }
+        [HttpDelete]
+        [Route("{id}")]
+        public async Task<IActionResult> DeleteDiscipline([FromRoute] int id)
+        {
+            var discipline = await disciplinesRepository.DeleteDisciplineAsync(id);
+
+            if (discipline != null)
+            {
+                return Ok(discipline);
+
+            }
+            return NotFound("Doesn't Exist or has already been deleted");
+
+        }
+
     }
 }
 
