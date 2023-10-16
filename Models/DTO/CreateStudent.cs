@@ -1,6 +1,6 @@
 ﻿namespace ManageCollege.Models.DTO
 {
-    public class CreateStudentRequestDTO
+    public class CreateStudent
     {
         public string StudentName { get; set; }
 

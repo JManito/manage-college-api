@@ -4,6 +4,16 @@ namespace ManageCollege.Repositories.Interface
 {
     public interface IRepository
     {
+        //Tasks for Auth
+        Task<Authentication> GetAuthentication();
+        Task<Authentication> SetAuthentication(Authentication auth, int id);
+
+        //Tasks for Courses
+        Task<Courses> CreateCourseAsync(Courses course);
+        Task<List<Courses>> GetCoursesAsync();
+        Task<Courses> GetCourseAsync(int id);
+        Task<Courses> EditCourseAsync(Courses grade, int id);
+        Task<Courses> DeleteCourseAsync(int id);
 
         //Tasks for Disciplines
         Task<Disciplines> CreateDisciplineAsync(Disciplines disciplines);

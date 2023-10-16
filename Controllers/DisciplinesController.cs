@@ -26,7 +26,7 @@ namespace ManageCollege.Controllers
         }
 
         [HttpPost]
-        public async Task<IActionResult> CreateDiscipline(CreateDisciplineRequestDTO request)
+        public async Task<IActionResult> CreateDiscipline(CreateDiscipline request)
         {
             //Map DTO to Domain Model
             var discipline = new Disciplines
@@ -79,7 +79,7 @@ namespace ManageCollege.Controllers
 
         [HttpPut]
         [Route("{id}")]
-        public async Task<IActionResult> UpdateDiscipline([FromRoute] int id, Disciplines request)
+        public async Task<IActionResult> UpdateDiscipline([FromRoute] int id, Disciplines request) 
         {
 
             var discipline = await disciplinesRepository.EditDisciplineAsync(request, id);

@@ -21,7 +21,7 @@ namespace ManageCollege.Controllers
         }
 
         [HttpPost]
-        public async Task<IActionResult> CreateGradesAsync(CreateGradeRequestDTO request)
+        public async Task<IActionResult> CreateGradesAsync(CreateGrade request)
         {
             //Map DTO to Domain Model
             var grade = new Grades

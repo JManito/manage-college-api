@@ -1,6 +1,6 @@
 ﻿namespace ManageCollege.Models.DTO
 {
-    public class CreateGradeRequestDTO
+    public class CreateGrade
     {
         public int StudentId { get; set; }
         public int DisciplineId { get; set; }

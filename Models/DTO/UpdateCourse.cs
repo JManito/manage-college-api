@@ -1,8 +1,7 @@
 ﻿namespace ManageCollege.Models.DTO
 {
-    public class EditCourseDTO
+    public class UpdateCourse
     {
-        public int Id { get; set; }
         public string CourseName { get; set; }
     }
 }

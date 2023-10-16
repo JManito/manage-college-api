@@ -10,6 +10,7 @@ namespace ManageCollege.Models.Domain
         public string DisciplineName { get; set; }
         [ForeignKey("Professors")]
         public int ProfessorId { get; set; }
+        [ForeignKey("Courses")]
         public int CourseId { get; set; }
         
     }

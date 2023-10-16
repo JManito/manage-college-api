@@ -1,10 +1,17 @@
-﻿using ManageCollege.Data;
+﻿using Azure.Core;
+using ManageCollege.Data;
+using System.Data;
 using ManageCollege.Models.Domain;
 using ManageCollege.Models.DTO;
 using ManageCollege.Repositories.Interface;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Query.Internal;
+using Microsoft.IdentityModel.Tokens;
 using System.Diagnostics;
+using System.Text.RegularExpressions;
+using static Microsoft.EntityFrameworkCore.DbLoggerCategory;
+using Microsoft.Extensions.Hosting;
+using System.Linq;
 
 namespace ManageCollege.Repositories.Implementation
 {
@@ -15,14 +22,165 @@ namespace ManageCollege.Repositories.Implementation
         public Repository(ApplicationDBContext dbContext)
         {
             this.dbContext = dbContext;
+
         }
 
+        //-------------------------------------------------------------------
+        //---------------------ALL THE AUTH METHODS--------------------------
+        //-------------------------------------------------------------------
+
+        public async Task<Authentication> GetAuthentication()
+        {
+            var auth = await dbContext.Auth.FirstAsync();
+
+            if (auth != null)
+            {
+                return auth;
+            }
+            return null;
+
+        }
+        public async Task<Authentication> SetAuthentication(Authentication auth, int id)
+        {
+
+            var authed = await dbContext.Auth.FindAsync(id);
+
+
+            if (authed != null)
+            {
+
+                authed.authAs = auth.authAs;
+                authed.isAuth = auth.isAuth;
+
+                await dbContext.SaveChangesAsync();
+
+                return authed;
+
+            }
+            return null;
+        }
+        //-------------------------------------------------------------------
+        //------------------ALL THE COURSES METHODS--------------------------
+        //-------------------------------------------------------------------
+
+        public async Task<Courses> CreateCourseAsync(Courses course)
+        {
+            //Prepare string to be inserted in DB
+
+            if(course.CourseName != null)
+            {
+                course.CourseName = course.CourseName.Trim().Replace("\"", "");
+
+                //Check if string already in DB
+
+                var exists = dbContext.Courses
+                .Select(x => new Courses
+                {
+                    CourseName = x.CourseName,
+                }).Where(x => x.CourseName == course.CourseName).ToList();
+
+                //Validate if entry is already in DB or is invalid
+
+                foreach (var selectcourse in exists)
+                {
+                    if (selectcourse != null && selectcourse.CourseName == course.CourseName || course.CourseName.IsNullOrEmpty() || Regex.Replace(course.CourseName, "[^0-9]", "").Equals(course.CourseName) || selectcourse.CourseName.ToLower() == course.CourseName.ToLower() || Regex.IsMatch(course.CourseName, "/ ^[a - z,.'-]*$/i") || course.CourseName == "string")
+                    {
+                        return null;
+                    }
+                }
+
+
+                //Post new entry
+                await dbContext.Courses.AddAsync(course);
+                await dbContext.SaveChangesAsync();
+
+                return course;
+            }
+
+            return null;
+        }
+        public async Task<List<Courses>> GetCoursesAsync()
+        {
+            var courses = await dbContext.Courses.ToListAsync();
+
+            return courses;
+
+        }
+        public async Task<Courses> GetCourseAsync(int id)
+        {
+            var course = await dbContext.Courses.FindAsync(id);
+
+            if (course != null)
+            {
+                return course;
+            }
+            return null;
+
+        }
+        public async Task<Courses> EditCourseAsync(Courses courses, int id)
+        {
+
+            var course = await dbContext.Courses.FindAsync(id);
+
+
+            if (course != null)
+            {
+
+                 course.CourseName= courses.CourseName;
+
+                await dbContext.SaveChangesAsync();
+
+                return course;
+
+            }
+            return null;
+
+        }
+        public async Task<Courses> DeleteCourseAsync(int id)
+        {
+
+            var course = await dbContext.Courses.FindAsync(id);
+
+            if (course != null)
+            {
+
+                dbContext.Remove(course);
+
+                await dbContext.SaveChangesAsync();
+
+                return course;
+
+            }
+            return null;
+
+        }
         //-------------------------------------------------------------------
         //------------------ALL THE DISCIPLINE METHODS-----------------------
         //-------------------------------------------------------------------
 
         public async Task<Disciplines> CreateDisciplineAsync(Disciplines disciplines)
         {
+
+            disciplines.DisciplineName = disciplines.DisciplineName.Trim().Replace("\"", "");
+
+            //Check if string already in DB
+
+            var exists = dbContext.Disciplines
+            .Select(x => new Disciplines
+            {
+                DisciplineName = x.DisciplineName,
+            }).Where(x => x.DisciplineName == disciplines.DisciplineName).ToList();
+            
+            //Validate if entry is already in DB or is invalid
+            foreach (var selectdis in exists)
+            {
+                if (selectdis != null && selectdis.DisciplineName == disciplines.DisciplineName || disciplines.DisciplineName.IsNullOrEmpty() || Regex.Replace(disciplines.DisciplineName, "[^0-9]", "").Equals(disciplines.DisciplineName) || selectdis.DisciplineName.ToLower() == disciplines.DisciplineName.ToLower() || Regex.IsMatch(disciplines.DisciplineName, "/ ^[a - z,.'-]*$/i") || disciplines.DisciplineName == "string")
+                {
+                    return null;
+                }
+            }
+
+
             await dbContext.Disciplines.AddAsync(disciplines);
             await dbContext.SaveChangesAsync();
 

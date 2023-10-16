@@ -21,7 +21,7 @@ namespace ManageCollege.Controllers
         }
 
         [HttpPost]
-        public async Task<IActionResult> CreateProfessor(CreateProfessorRequestDTO request)
+        public async Task<IActionResult> CreateProfessor(CreateProfessor request)
         {
             //Map DTO to Domain Model
             var professor = new Professors

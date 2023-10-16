@@ -21,7 +21,7 @@ namespace ManageCollege.Controllers
         }
 
         [HttpPost]
-        public async Task<IActionResult> CreateStudent(CreateStudentRequestDTO request)
+        public async Task<IActionResult> CreateStudent(CreateStudent request)
         {
             //Map DTO to Domain Model
             var student = new Students

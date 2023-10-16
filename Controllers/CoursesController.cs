@@ -2,6 +2,7 @@
 using ManageCollege.Models.Domain;
 using ManageCollege.Models.DTO;
 using ManageCollege.Repositories.Implementation;
+using ManageCollege.Repositories.Interface;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
@@ -14,15 +15,15 @@ namespace ManageCollege.Controllers
     [ApiController]
     public class CoursesController : ControllerBase
     {
-        private readonly ApplicationDBContext dbContext;
-        public CoursesController(ApplicationDBContext dbContext)
-        {
-            this.dbContext = dbContext;
-        }
+        private readonly IRepository coursesRepository;
 
-        
+        public CoursesController(IRepository coursesRepository)
+        {
+            this.coursesRepository = coursesRepository;
+        }
         [HttpPost]
-        public async Task<IActionResult> CreateCourse(CreateCourseRequestDTO request)
+
+        public async Task<IActionResult> CreateCourse(CreateCourse request)
         {
             //Map DTO to Domain Model
             var course = new Courses
@@ -31,40 +32,19 @@ namespace ManageCollege.Controllers
             };
 
             //Get all courses
-            var courses = await dbContext.Courses.ToListAsync();
-            //Declare filters
-            var regexItem = new Regex("^[a-zA-Z0-9 ]*$");
-            var regexEmpty = new Regex("^(?!$).+");
-            //Validate entry so that there are no duplicates
-            foreach ( var k in courses)
+           var courses = await coursesRepository.CreateCourseAsync(course);
+           if(courses != null)
             {
-
-                if (Regex.Replace(k.CourseName, "[^0-9]", "").Equals(request.CourseName) || k.CourseName.ToLower() == request.CourseName.ToLower() )
-                {
-                    return Ok();
-                }
-
-            }
-            //Post new entry
-            await dbContext.Courses.AddAsync(course);
-            await dbContext.SaveChangesAsync();
-
-
-            //Domain model to DTO
-            var response = new CourseDTO
-            {
-                Id = course.Id,
-                CourseName = course.CourseName
-            };
-
-            return Ok(response);
-
+                return Ok(courses);
+            } 
+            
+            return NotFound("Can't create, the entered name already exists / is invalid!");
         }
 
         [HttpGet]
         public async Task<IActionResult> GetCourse()
         {
-           var courses = await dbContext.Courses.ToListAsync();
+            var courses = await coursesRepository.GetCoursesAsync();
 
            return Ok(courses);
 
@@ -76,7 +56,7 @@ namespace ManageCollege.Controllers
         public async Task<IActionResult> GetCourse([FromRoute] int id)
         {
 
-            var course = await dbContext.Courses.FirstOrDefaultAsync(x => x.Id == id);
+            var course = await coursesRepository.GetCourseAsync(id);
 
             if(course == null)
             {
@@ -89,14 +69,14 @@ namespace ManageCollege.Controllers
 
         [HttpPut]
         [Route("{id}")]
-        public async Task<IActionResult> UpdateCourse([FromRoute] int id, UpdateCourseRequestDTO updateCourseRequest)
+        public async Task<IActionResult> UpdateCourse([FromRoute] int id, UpdateCourse updateCourseRequest)
         {
-            var course = await dbContext.Courses.FindAsync(id);
-            if(course != null) { 
+            var course = await coursesRepository.GetCourseAsync(id);
+            if (course != null) { 
             
                 course.CourseName = updateCourseRequest.CourseName;
 
-                await dbContext.SaveChangesAsync();
+                await coursesRepository.EditCourseAsync(course, id);
 
                 return Ok(course);
 
@@ -107,13 +87,12 @@ namespace ManageCollege.Controllers
         [Route("{id}")]
         public async Task<IActionResult> DeleteCourse([FromRoute] int id)
         {
-            var course = await dbContext.Courses.FindAsync(id);
+            var course = await coursesRepository.GetCourseAsync(id);
+
             if (course != null)
             {
 
-                dbContext.Remove(course);
-
-                await dbContext.SaveChangesAsync();
+                await coursesRepository.DeleteCourseAsync(id);
 
                 return Ok(course);
 
