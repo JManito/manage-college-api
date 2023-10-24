@@ -24,7 +24,7 @@ namespace ManageCollege.Controllers
         public async Task<IActionResult> CreateGradesAsync(CreateGrade request)
         {
             //Map DTO to Domain Model
-            var grade = new Grades
+            var grade = new Models.Domain.Grades
             {
                 StudentId = request.StudentId,
                 Grade = request.Grade,
@@ -36,7 +36,7 @@ namespace ManageCollege.Controllers
 
 
             //Domain model to DTO
-            var response = new GradeDTO
+            var response = new Models.DTO.GradesDTO
             {
                 StudentId = grade.StudentId,
                 Grade = grade.Grade,
@@ -85,7 +85,7 @@ namespace ManageCollege.Controllers
 
         [HttpPut]
         [Route("{id}")]
-        public async Task<IActionResult> UpdateGrade([FromRoute] int id, Grades request)
+        public async Task<IActionResult> UpdateGrade([FromRoute] int id, Models.Domain.Grades request)
         {
             //---EDIT
 

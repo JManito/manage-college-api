@@ -36,7 +36,7 @@ namespace ManageCollege.Controllers
 
 
             //Domain model to DTO
-            var response = new ProfessorDTO
+            var response = new Professor
             {
                 ProfessorId = professor.ProfessorId,
                 ProfessorName = professor.ProfessorName,

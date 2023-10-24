@@ -7,7 +7,7 @@ namespace ManageCollege.Models.Domain
         [Key]
         public int ProfessorId { get; set; }
 
-        public string ProfessorName { get; set; }
+        public string ProfessorName { get; set; } = string.Empty;
 
         public DateTime DateOfBirth { get; set; }
 

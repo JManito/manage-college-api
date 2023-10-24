@@ -36,7 +36,7 @@ namespace ManageCollege.Controllers
 
 
             //Domain model to DTO
-            var response = new StudentDTO
+            var response = new Student
             {
                 StudentId = student.StudentId,
                 StudentName = student.StudentName,

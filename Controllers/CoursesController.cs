@@ -22,54 +22,95 @@ namespace ManageCollege.Controllers
         {
             this.coursesRepository = coursesRepository;
         }
-        [HttpPost]
 
+        [HttpPost]
         public async Task<IActionResult> CreateCourse(CreateCourse request)
         {
-            //Map DTO to Domain Model
-            var course = new Courses
+            try
             {
-                CourseName = request.CourseName
-            };
+                //Map DTO to Domain Model
+                var course = new Courses
+                {
+                    CourseName = request.CourseName
+                };
 
-            //Get all courses
-           var courses = await coursesRepository.CreateCourseAsync(course);
+                //Get all courses
+                var courses = await coursesRepository.CreateCourseAsync(course);
 
-            if (courses != null)
-            {
-                return Ok(courses);
+                if (courses != null)
+                {
+                    return Ok(courses);
+                }
+
+                return NotFound("Can't create, the entered name already exists / is invalid!");
             }
 
-            return NotFound("Can't create, the entered name already exists / is invalid!");
+            catch 
+            {
+                // Handle the error and return an error response
+                var errorResponse = new Error()
+                {
+                    ErrorMessage = "An error occurred while processing your request.",
+                    StatusCode = 500 // Internal Server Error
+                };
+
+                return StatusCode(500, errorResponse);
+            }
         }
 
         [HttpPost]
         [Route("{id:int}/enroll/{studentId:int}")]
         public async Task<IActionResult> Enroll([FromRoute] int id, [FromBody] int studentId)
         {
-            //Map DTO to Domain Model
-            var enrollment = new Enrollment
+            try
             {
-                CourseId = id,
-                StudentId = studentId
-            };
+                //Map DTO to Domain Model
+                var enrollment = new Enrollment
+                {
+                    CourseId = id,
+                    StudentId = studentId
+                };
 
-            var enroll = await coursesRepository.Enroll(enrollment, id, studentId);
+                var enroll = await coursesRepository.Enroll(enrollment, id, studentId);
 
-            if (enroll != null)
-            {
-                return Ok(enroll);
+                if (enroll != null)
+                {
+                    return Ok(enroll);
+                }
+
+                return NotFound("Can't create, the entered name already exists / is invalid!");
             }
+            catch
+            {
+                // Handle the error and return an error response
+                var errorResponse = new Error()
+                {
+                    ErrorMessage = "An error occurred while processing your request.",
+                    StatusCode = 500 // Internal Server Error
+                };
 
-            return NotFound("Can't create, the entered name already exists / is invalid!");
+                return StatusCode(500, errorResponse);
+            }
         }
 
         [HttpGet]
         public async Task<IActionResult> GetCourse()
         {
-            var courses = await coursesRepository.GetCoursesAsync();
+            try
+            {
+                var courses = await coursesRepository.GetCoursesAsync();
 
-           return Ok(courses);
+                return Ok(courses);
+            }catch
+            {
+                var errorResponse = new Error()
+                {
+                    ErrorMessage = "An error occurred while processing your request.",
+                    StatusCode = 500 // Internal Server Error
+                };
+
+                return StatusCode(500, errorResponse);
+            }
 
         }
 
@@ -77,9 +118,23 @@ namespace ManageCollege.Controllers
         [Route("professors")]
         public async Task<IActionResult> GetCourseProfessors()
         {
-            var courseProfessors = await coursesRepository.GetCoursesProfessorsAsync();
+            try
+            {
+                var courseProfessors = await coursesRepository.GetCoursesProfessorsAsync();
 
-            return Ok(courseProfessors);
+                return Ok(courseProfessors);
+            }
+            catch
+            {
+                var errorResponse = new Error()
+                {
+                    ErrorMessage = "An error occurred while processing your request.",
+                    StatusCode = 500 // Internal Server Error
+                };
+
+                return StatusCode(500, errorResponse);
+            }
+
 
         }
 
@@ -88,7 +143,11 @@ namespace ManageCollege.Controllers
         public async Task<IActionResult> GetCoursesInfoAsync([FromBody] int? id)
         {
             var courseInfo = await coursesRepository.GetCoursesInfoAsync(id);
+            if(courseInfo == null)
+            {
+                return NotFound("Course info not found");
 
+            }
             return Ok(courseInfo);
 
         }
@@ -103,7 +162,7 @@ namespace ManageCollege.Controllers
 
             if(course == null)
             {
-                return NotFound();
+                return NotFound("Course not found");
             }
 
             return Ok(course);
@@ -119,7 +178,7 @@ namespace ManageCollege.Controllers
 
             if (course == null)
             {
-                return NotFound();
+                return NotFound("Discipline not found");
             }
 
             return Ok(course);
@@ -130,17 +189,26 @@ namespace ManageCollege.Controllers
         [Route("{id}")]
         public async Task<IActionResult> UpdateCourse([FromRoute] int id, UpdateCourse updateCourseRequest)
         {
-            var course = await coursesRepository.GetCourseAsync(id);
-            if (course != null) { 
-            
-                course.CourseName = updateCourseRequest.CourseName;
+            try
+            {
+                var course = await coursesRepository.GetCourseAsync(id);
+                if (course != null)
+                {
 
-                await coursesRepository.EditCourseAsync(course, id);
+                    course.CourseName = updateCourseRequest.CourseName;
 
-                return Ok(course);
+                    await coursesRepository.EditCourseAsync(course, id);
 
+                    return Ok(course);
+
+                }
+                return NotFound("Could not update");
+            } catch
+            {
+                return BadRequest();
             }
-            return NotFound();
+
+
         }
         [HttpDelete]
         [Route("{id}")]
@@ -156,7 +224,7 @@ namespace ManageCollege.Controllers
                 return Ok(course);
 
             }
-            return NotFound();
+            return NotFound("Couldn't Delete");
 
         }
     }

@@ -6,9 +6,9 @@ namespace ManageCollege.Models.Domain
     public class Courses
     {
         [Key]
-        public int Id { get; set; }
+        public int Id { get; set; } = 0;
 
-        public string? CourseName { get; set; }
+        public string CourseName { get; set; } = "";
 
     }
     public class CoursesGet
@@ -40,6 +40,6 @@ namespace ManageCollege.Models.Domain
         public string? CourseName { get; set; }
         public int ProfessorNr { get; set; }
 
-        public List<CourseStudentAverage> CourseStudentAverages { get; set; }
+        public List<CourseStudentAverage> CourseStudentAverages { get; set; } = new List<CourseStudentAverage>();
     }
 }

@@ -40,6 +40,7 @@ namespace ManageCollege.Repositories.Implementation
             {
                 return auth;
             }
+
             return null;
 
         }
@@ -1031,7 +1032,7 @@ namespace ManageCollege.Repositories.Implementation
             var gradeToEdit = await dbContext.Grades.FindAsync(id);
 
 
-            if (grade != null)
+            if (grade != null && gradeToEdit!= null)
             {
 
                 gradeToEdit.StudentId = grade.StudentId;

@@ -40,7 +40,7 @@ namespace ManageCollege.Controllers
 
 
             //Domain model to DTO
-            var response = new DisciplineDTO
+            var response = new Discipline
             {
                 DisciplineId = discipline.DisciplineId,
                 DisciplineName = discipline.DisciplineName,

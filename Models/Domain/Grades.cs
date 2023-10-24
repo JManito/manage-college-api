@@ -13,11 +13,6 @@ namespace ManageCollege.Models.Domain
         public int DisciplineId { get; set; }
         public int Grade { get; set; }
     }
-    public class DisciplineGrade
-    {
-        public string? DisciplineName { get; set; }
-        public int Grade { get; set; }
-    }
     public class StudentGrade
     {
         [Key]
@@ -27,9 +22,13 @@ namespace ManageCollege.Models.Domain
 
         public string? StudentName { get; set; }
 
-        public List<DisciplineGrade> DisciplineGrade { get; set; } 
+        public List<DisciplineGrade> DisciplineGrade { get; set; } = new List<DisciplineGrade>();
 
     }
-
+    public class DisciplineGrade
+    {
+        public string? DisciplineName { get; set; }
+        public int Grade { get; set; }
+    }
 
 }
