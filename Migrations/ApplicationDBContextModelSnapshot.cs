@@ -22,13 +22,22 @@ namespace ManageCollege.Migrations
 
             SqlServerModelBuilderExtensions.UseIdentityColumns(modelBuilder);
 
-            modelBuilder.Entity("ManageCollege.Models.Domain.Auth", b =>
+            modelBuilder.Entity("ManageCollege.Models.Domain.Authentication", b =>
                 {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+
                     b.Property<string>("authAs")
+                        .IsRequired()
                         .HasColumnType("nvarchar(max)");
 
                     b.Property<int>("isAuth")
                         .HasColumnType("int");
+
+                    b.HasKey("Id");
 
                     b.ToTable("Auth");
                 });
@@ -61,7 +70,6 @@ namespace ManageCollege.Migrations
                         .HasColumnType("int");
 
                     b.Property<string>("DisciplineName")
-                        .IsRequired()
                         .HasColumnType("nvarchar(max)");
 
                     b.Property<int>("ProfessorId")
@@ -81,6 +89,9 @@ namespace ManageCollege.Migrations
                     SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
 
                     b.Property<int>("CourseId")
+                        .HasColumnType("int");
+
+                    b.Property<int>("StudentId")
                         .HasColumnType("int");
 
                     b.HasKey("Id");
