@@ -13,4 +13,23 @@ namespace ManageCollege.Models.Domain
         public int DisciplineId { get; set; }
         public int Grade { get; set; }
     }
+    public class DisciplineGrade
+    {
+        public string? DisciplineName { get; set; }
+        public int Grade { get; set; }
+    }
+    public class StudentGrade
+    {
+        [Key]
+        public int Id { get; set; }
+        [ForeignKey("Students")]
+        public int StudentId { get; set; }
+
+        public string? StudentName { get; set; }
+
+        public List<DisciplineGrade> DisciplineGrade { get; set; } 
+
+    }
+
+
 }

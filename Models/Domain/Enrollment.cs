@@ -9,5 +9,6 @@ namespace ManageCollege.Models.Domain
         public int Id { get; set; }
         [ForeignKey("Courses")]
         public int CourseId { get; set; }
+        public int StudentId { get; set; }
     }
 }

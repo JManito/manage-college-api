@@ -6,7 +6,6 @@ using Microsoft.OpenApi.Models;
 using Microsoft.AspNetCore.Builder;
 
 var builder = WebApplication.CreateBuilder(args);
-
 // Add services to the container.
 builder.Services.AddControllersWithViews();
 builder.Services.AddEndpointsApiExplorer();
@@ -26,7 +25,11 @@ var app = builder.Build();
 if (app.Environment.IsDevelopment())
 {
     app.UseSwagger();
-    app.UseSwaggerUI();
+    app.UseSwaggerUI(options =>
+    {
+        options.SwaggerEndpoint("/swagger/v1/swagger.json", "Magnifinance - Manage College V1");
+        options.RoutePrefix = string.Empty;
+    });
 }
 
 app.UseHttpsRedirection();
@@ -40,7 +43,7 @@ app.UseCors(options =>
     options.AllowAnyMethod();
 
 });
-
+ 
 app.UseStaticFiles();
 
 app.UseRouting();
@@ -50,6 +53,5 @@ app.UseAuthorization();
 app.MapControllerRoute(
     name: "default",
     pattern: "{controller=Home}/{action=Index}/{id?}");
-
-
+ 
 app.Run();

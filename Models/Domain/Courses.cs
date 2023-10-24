@@ -15,16 +15,31 @@ namespace ManageCollege.Models.Domain
     {
         public string? CourseName { get; set; }
     }
-        public class CourseList
+    public class CoursesProfessors
     {
         [Key]
-        public int Id { get; private set; }
+        public int Id { get; set; }
 
-        public string? CourseName { get; private set; }
+        public string? CourseName { get; set; }
 
-        public int CourseDisciplineID { get; private set; }
-        public int CourseDisciplineName { get; private set; }
-        public int CourseProfessorID { get; private set; }
-        public string? CourseProfessor { get; private set; }
+        public int CourseDisciplineID { get; set; }
+        public string? CourseDisciplineName { get; set; }
+        public int CourseProfessorID { get; set; }
+        public string? CourseProfessor { get; set; }
+    }
+    public class CourseStudentAverage
+    {
+        public int StudentId { get; set; }
+        public string? StudentName { get; set; }
+        public decimal Average { get; set; }
+    }
+    public class CourseInfo
+    {
+        public int Id { get; set; }
+        public int CourseId { get; set; }
+        public string? CourseName { get; set; }
+        public int ProfessorNr { get; set; }
+
+        public List<CourseStudentAverage> CourseStudentAverages { get; set; }
     }
 }

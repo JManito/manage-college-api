@@ -53,13 +53,23 @@ namespace ManageCollege.Controllers
         }
         [HttpGet]
         public async Task<IActionResult> GetDisciplines()
-        {
+        { 
 
             var disciplines = await disciplinesRepository.GetDisciplinesAsync();
 
             return Ok(disciplines);
 
         }
+        [HttpPost]
+        [Route("info")]
+        public async Task<IActionResult> GetDisciplineInfoAsync([FromBody] int? id)
+        {
+            var disciplineInfo = await disciplinesRepository.GetDisciplineInfoAsync(id);
+
+            return Ok(disciplineInfo);
+
+        }
+
 
         [HttpGet]
         [Route("{id:int}")]

@@ -1,11 +1,12 @@
-﻿using ManageCollege.Data;
+﻿using Azure.Core;
+using ManageCollege.Data;
 using ManageCollege.Models.Domain;
 using ManageCollege.Models.DTO;
 using ManageCollege.Repositories.Implementation;
 using ManageCollege.Repositories.Interface;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore; 
 using Swagger.Net;
 using System.Text.RegularExpressions;
 
@@ -33,11 +34,33 @@ namespace ManageCollege.Controllers
 
             //Get all courses
            var courses = await coursesRepository.CreateCourseAsync(course);
-           if(courses != null)
+
+            if (courses != null)
             {
                 return Ok(courses);
-            } 
-            
+            }
+
+            return NotFound("Can't create, the entered name already exists / is invalid!");
+        }
+
+        [HttpPost]
+        [Route("{id:int}/enroll/{studentId:int}")]
+        public async Task<IActionResult> Enroll([FromRoute] int id, [FromBody] int studentId)
+        {
+            //Map DTO to Domain Model
+            var enrollment = new Enrollment
+            {
+                CourseId = id,
+                StudentId = studentId
+            };
+
+            var enroll = await coursesRepository.Enroll(enrollment, id, studentId);
+
+            if (enroll != null)
+            {
+                return Ok(enroll);
+            }
+
             return NotFound("Can't create, the entered name already exists / is invalid!");
         }
 
@@ -49,7 +72,27 @@ namespace ManageCollege.Controllers
            return Ok(courses);
 
         }
-      
+
+        [HttpGet]
+        [Route("professors")]
+        public async Task<IActionResult> GetCourseProfessors()
+        {
+            var courseProfessors = await coursesRepository.GetCoursesProfessorsAsync();
+
+            return Ok(courseProfessors);
+
+        }
+
+        [HttpPost]
+        [Route("info")]
+        public async Task<IActionResult> GetCoursesInfoAsync([FromBody] int? id)
+        {
+            var courseInfo = await coursesRepository.GetCoursesInfoAsync(id);
+
+            return Ok(courseInfo);
+
+        }
+        
 
         [HttpGet]
         [Route("{id:int}")]
@@ -59,6 +102,22 @@ namespace ManageCollege.Controllers
             var course = await coursesRepository.GetCourseAsync(id);
 
             if(course == null)
+            {
+                return NotFound();
+            }
+
+            return Ok(course);
+
+        }
+
+        [HttpGet]
+        [Route("{id:int}/disciplines")]
+        public async Task<IActionResult> GetDisciplinesOfCourse([FromRoute] int id)
+        {
+
+            var course = await coursesRepository.GetCourseDisciplinesAsync(id);
+
+            if (course == null)
             {
                 return NotFound();
             }

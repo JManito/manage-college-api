@@ -12,6 +12,9 @@ using System.Text.RegularExpressions;
 using static Microsoft.EntityFrameworkCore.DbLoggerCategory;
 using Microsoft.Extensions.Hosting;
 using System.Linq;
+using System.Diagnostics.Metrics;
+using Microsoft.IdentityModel.Abstractions;
+using System.Collections.Generic;
 
 namespace ManageCollege.Repositories.Implementation
 {
@@ -99,6 +102,45 @@ namespace ManageCollege.Repositories.Implementation
 
             return null;
         }
+        public async Task<Enrollment> Enroll(Enrollment enroll, int id, int studentId)
+        {
+            //get the student with the ID to change enrollmentnumber
+            var studentsselected = await dbContext.Students.FindAsync(studentId);
+
+            var exists = dbContext.Enrollment
+                        .Select(x => new Enrollment
+                        {
+                            Id = x.Id,
+                            StudentId = x.StudentId,
+                        }).Where(x => x.StudentId == studentId).ToList();
+
+            //Validate if student is already enrolled in DB or is invalid
+
+            foreach (var existingEnrollments in exists)
+            {
+                if (existingEnrollments != null && (existingEnrollments.Id == id && existingEnrollments.StudentId == studentId))
+                {
+                    return null;
+                }
+            }
+            //Post new entry if not enrolled
+            await dbContext.Enrollment.AddAsync(enroll);
+            await dbContext.SaveChangesAsync();
+
+
+
+            //Edit Student Table In DB
+            var enrollmentNr = await dbContext.Enrollment.FindAsync(enroll.Id);
+            if (studentsselected != null && studentsselected.EnrollmentNumber == 0)
+            {
+                studentsselected.EnrollmentNumber = enroll.Id;
+                await dbContext.SaveChangesAsync();
+
+            }
+
+            return enroll;
+
+        }
         public async Task<List<Courses>> GetCoursesAsync()
         {
             var courses = await dbContext.Courses.ToListAsync();
@@ -106,6 +148,275 @@ namespace ManageCollege.Repositories.Implementation
             return courses;
 
         }
+
+        public async Task<List<CoursesProfessors>> GetCoursesProfessorsAsync()
+        {
+            var courses = await dbContext.Courses.ToListAsync();
+            var professorcounter = 0;
+            var professorName = new String("");
+            var courseName = new String("");
+            var CoursesProfessors = new List<CoursesProfessors>();
+            var newProfessor = new Professors();
+            var newCourse = new Courses();
+
+            //Quantos cursos
+            foreach (var dcourse in courses)
+            {
+                var CourseProfessor = new CoursesProfessors();
+
+
+                if (dcourse != null)
+                {
+                    var courseDisciplines = dbContext.Disciplines
+                       .Select(x => new Disciplines
+                       {
+                           DisciplineId = x.DisciplineId,
+                           DisciplineName = x.DisciplineName,
+                           ProfessorId = x.ProfessorId,
+                           CourseId = x.CourseId
+                       }).Where(x => x.CourseId == dcourse.Id).ToList();
+
+                    //Quantas disciplinas e sprof
+                    foreach (var disciplinecountermodule in courseDisciplines)
+                    {
+                        CourseProfessor = new CoursesProfessors();
+
+                        if (disciplinecountermodule != null && disciplinecountermodule.ProfessorId != 0)
+                        {
+                            CourseProfessor.Id = professorcounter;
+                            CourseProfessor.CourseProfessorID = disciplinecountermodule.ProfessorId;
+                            //Ir buscar o professor name com o outro getbyid()
+                                newProfessor = await dbContext.Professors.FindAsync(disciplinecountermodule.ProfessorId);
+                                if (newProfessor != null) { professorName = newProfessor.ProfessorName ;}
+                           
+                            CourseProfessor.CourseProfessor = professorName;
+
+
+                            CourseProfessor.CourseDisciplineID = disciplinecountermodule.DisciplineId;
+                            CourseProfessor.CourseDisciplineName = disciplinecountermodule.DisciplineName;
+
+                            //Ir buscar o course name com o outro getbyid()
+                                newCourse = await dbContext.Courses.FindAsync(disciplinecountermodule.CourseId);
+                                if (newCourse != null) { courseName = newCourse.CourseName; }
+                            CourseProfessor.CourseName = courseName;
+
+                            //Next Professor
+                            professorcounter++;
+
+                            //Add Professor to the List
+                            CoursesProfessors.Add(CourseProfessor);
+                        }
+                    }
+                }
+            }
+             
+
+
+            return CoursesProfessors;
+        }
+
+
+        public async Task<List<CourseInfo>> GetCoursesInfoAsync(int? id)
+        {
+            var selectedCourse = new Courses();
+            var courses = await dbContext.Courses.ToListAsync();
+            var enrollments = await dbContext.Enrollment.ToListAsync();
+            var professorName = new String("");
+            var courseName = new String("");
+            var coursesInfo = new List<CourseInfo>();
+            var courseInfo = new CourseInfo();
+            var courseStudentAverages = new List<CourseStudentAverage>();
+            var courseStudentAverage = new CourseStudentAverage();
+            var courseTotal = new Decimal();
+            var alumnicounter = 0;
+            var courseCounter = 0;
+
+            if (id != null)
+            {
+                selectedCourse = await dbContext.Courses.FindAsync(id);
+                //Para cada curso criamos 1 modelo de informação
+                courseInfo = new CourseInfo();
+                //Criaçao nova lista de medias por curso
+                courseStudentAverages = new List<CourseStudentAverage>();
+                if (selectedCourse != null)
+                {
+                    //Alocar info do curso ao modelo de resposta
+                    courseInfo.Id = courseCounter;
+                    courseInfo.CourseId = selectedCourse.Id;
+                    courseInfo.CourseName = selectedCourse.CourseName;
+
+                    //Valida inscriçoes de aluno por curso
+                    //1 inscrição = curso info + studentinfo
+                    foreach (var enroll in enrollments)
+                    {
+
+                        //Todas as inscrições no curso
+                        if (enroll != null && enroll.CourseId == selectedCourse.Id)
+                        {
+                            //Alocar valores courseStudentAverage a adicionar posteriormente na lista de modelos
+                            courseStudentAverage.StudentId = enroll.StudentId;
+                            var newStudent = await dbContext.Students.FindAsync(enroll.StudentId);
+                            if (newStudent != null) courseStudentAverage.StudentName = newStudent.StudentName;
+
+                            //Ir buscar as notas deste aluno ^^^^^^^^^^^^
+
+                            //Reset do total de aluno do curso
+                            courseTotal = 0;
+                            alumnicounter = 0;
+
+                            //Info do estudante inscrito
+
+                            //Ir buscar as disciplinas do curso 
+                            var courseDisciplines = dbContext.Disciplines.Where(x => x.CourseId == selectedCourse.Id).ToList();
+                            //Contar professores 
+                            var professorcounter = dbContext.Disciplines.Where(x => x.CourseId == selectedCourse.Id).Distinct().Count();
+
+                            courseInfo.ProfessorNr = professorcounter;
+
+                            //Percorrer cada disciplina do curso e recolher nota do aluno
+                            foreach (var disciplinecountermodule in courseDisciplines)
+                            {
+                                if (disciplinecountermodule != null && newStudent != null)
+                                {
+                                    var disciplinegrade = dbContext.Grades.Where(x => x.DisciplineId == disciplinecountermodule.DisciplineId && x.StudentId == newStudent.StudentId).Distinct().ToList();
+                                    foreach (var grade in disciplinegrade)
+                                    {
+                                        //Soma do total do curso
+                                        courseTotal = courseTotal + grade.Grade;
+                                    }
+
+                                    //Adicionar aluno ao contador
+                                    alumnicounter++;
+                                }
+                            }
+
+                            //Se houver notas e alunos calcula-se a media
+                            if (courseTotal != 0 && alumnicounter != 0)
+                            {
+
+                                courseStudentAverage.Average = courseTotal / alumnicounter;
+                                courseStudentAverage.Average = Math.Round(courseStudentAverage.Average, 2);
+
+                            }
+
+
+                            //Media de 1 aluno com 1 inscrição no curso 
+                            courseStudentAverages.Add(courseStudentAverage);
+                            //Nova media de aluno
+                            courseStudentAverage = new CourseStudentAverage();
+
+                        }
+                    }
+                    //Adicionar mais 1 curso ao counter
+                    courseCounter++;
+                    //Adicionar lista de medias de alunos à info de curso
+                    courseInfo.CourseStudentAverages = courseStudentAverages;
+                    //Caso as medias venham vazias/ nao hajam notas, devolve-se array vazio
+                    if (courseInfo.ProfessorNr == 0) courseInfo.CourseStudentAverages = new List<CourseStudentAverage>();
+                    //Adicionar info de curso à lista 
+                    coursesInfo.Add(courseInfo);
+                }
+                
+
+            }
+            else
+            {
+                //Quantos cursos
+                foreach (var dcourse in courses)
+                {
+                    //Para cada curso criamos 1 modelo de informação
+                    courseInfo = new CourseInfo();
+                    //Criaçao nova lista de medias por curso
+                    courseStudentAverages = new List<CourseStudentAverage>();
+                    if (dcourse != null)
+                    {
+                        //Alocar info do curso ao modelo de resposta
+                        courseInfo.Id = courseCounter;
+                        courseInfo.CourseId = dcourse.Id;
+                        courseInfo.CourseName = dcourse.CourseName;
+
+                        //Valida inscriçoes de aluno por curso
+                        //1 inscrição = curso info + studentinfo
+                        foreach (var enroll in enrollments)
+                        {
+
+                            //Todas as inscrições no curso
+                            if (enroll != null && enroll.CourseId == dcourse.Id)
+                            {
+                                //Alocar valores courseStudentAverage a adicionar posteriormente na lista de modelos
+                                courseStudentAverage.StudentId = enroll.StudentId;
+                                var newStudent = await dbContext.Students.FindAsync(enroll.StudentId);
+                                if (newStudent != null) courseStudentAverage.StudentName = newStudent.StudentName;
+
+                                //Ir buscar as notas deste aluno ^^^^^^^^^^^^
+
+                                //Reset do total de aluno do curso
+                                courseTotal = 0;
+                                alumnicounter = 0;
+
+                                //Info do estudante inscrito
+
+                                //Ir buscar as disciplinas do curso 
+                                var courseDisciplines = dbContext.Disciplines.Where(x => x.CourseId == dcourse.Id).ToList();
+                                //Contar professores 
+                                var professorcounter = dbContext.Disciplines.Where(x => x.CourseId == dcourse.Id).Distinct().Count();
+
+                                courseInfo.ProfessorNr = professorcounter;
+
+                                //Percorrer cada disciplina do curso e recolher nota do aluno
+                                foreach (var disciplinecountermodule in courseDisciplines)
+                                {
+                                    if (disciplinecountermodule != null && newStudent != null)
+                                    {
+                                        var disciplinegrade = dbContext.Grades.Where(x => x.DisciplineId == disciplinecountermodule.DisciplineId && x.StudentId == newStudent.StudentId).Distinct().ToList();
+                                        foreach (var grade in disciplinegrade)
+                                        {
+                                            //Soma do total do curso
+                                            courseTotal = courseTotal + grade.Grade;
+                                        }
+
+                                        //Adicionar aluno ao contador
+                                        alumnicounter++;
+                                    }
+                                }
+
+                                //Se houver notas e alunos calcula-se a media
+                                if (courseTotal != 0 && alumnicounter != 0)
+                                {
+
+                                    courseStudentAverage.Average = courseTotal / alumnicounter;
+                                    courseStudentAverage.Average = Math.Round(courseStudentAverage.Average, 2);
+
+                                }
+
+
+                                //Media de 1 aluno com 1 inscrição no curso 
+                                courseStudentAverages.Add(courseStudentAverage);
+                                //Nova media de aluno
+                                courseStudentAverage = new CourseStudentAverage();
+
+                            }
+                        }
+                        //Adicionar mais 1 curso ao counter
+                        courseCounter++;
+                        //Adicionar lista de medias de alunos à info de curso
+                        courseInfo.CourseStudentAverages = courseStudentAverages;
+                        //Caso as medias venham vazias/ nao hajam notas, devolve-se array vazio
+                        if (courseInfo.ProfessorNr == 0) courseInfo.CourseStudentAverages = new List<CourseStudentAverage>();
+                        //Adicionar info de curso à lista 
+                        coursesInfo.Add(courseInfo);
+                    }
+                }
+
+
+
+            }
+
+            
+            
+            return coursesInfo;
+        }
+
         public async Task<Courses> GetCourseAsync(int id)
         {
             var course = await dbContext.Courses.FindAsync(id);
@@ -154,6 +465,41 @@ namespace ManageCollege.Repositories.Implementation
             return null;
 
         }
+
+        public async Task<List<Disciplines>> GetCourseDisciplinesAsync(int id)
+        {
+            var course = await dbContext.Courses.FindAsync(id);
+           
+            if (course != null) {
+
+                // var courseDisciplines = from x in dbContext.Disciplines.Where(p => p.CourseId == course.Id).ToList();
+
+                var courseDisciplines2 =  dbContext.Disciplines
+                .Select(x => new Disciplines
+                {
+                    DisciplineId = x.DisciplineId,
+                    DisciplineName = x.DisciplineName,
+                    ProfessorId = x.ProfessorId,
+                    CourseId = x.CourseId
+                }).Where(x => x.CourseId == course.Id).ToList();
+
+                if (courseDisciplines2 != null)
+                {
+                    return courseDisciplines2;
+
+                }
+                return null;
+            }
+
+            
+            return null;
+            
+
+
+            
+
+        }
+
         //-------------------------------------------------------------------
         //------------------ALL THE DISCIPLINE METHODS-----------------------
         //-------------------------------------------------------------------
@@ -204,6 +550,183 @@ namespace ManageCollege.Repositories.Implementation
             return null;
 
         }
+
+        public async Task<List<DisciplineInfo>> GetDisciplineInfoAsync(int? id)
+        {
+
+
+            var disciplines = await dbContext.Disciplines.ToListAsync();
+            var selectedDiscipline = new Disciplines();
+            var grades = await dbContext.Grades.ToListAsync();
+            var professorName = new String("");
+            var disciplineName = new String("");
+            var DisciplineInfo = new List<DisciplineInfo>();
+            var studentGrade= new Grades();
+            var studentCounter = 0;
+            var disciplineCounter = 0;
+
+            if(id!= null)
+            {
+                selectedDiscipline = await dbContext.Disciplines.FindAsync(id);
+                if (selectedDiscipline != null)
+                {
+                    var oneDisciplineInfo = new DisciplineInfo();
+                    oneDisciplineInfo.DisciplineStudent = new List<DisciplineStudent>();
+                    oneDisciplineInfo.DisciplineProfessor = new DisciplineProfessor();
+                    var disciplineProfessor = dbContext.Professors
+                       .Select(x => new Professors
+                       {
+                           ProfessorId = x.ProfessorId,
+                           ProfessorName = x.ProfessorName,
+                           DateOfBirth = x.DateOfBirth,
+                           Salary = x.Salary
+                       }).Where(x => x.ProfessorId == selectedDiscipline.ProfessorId).ToList();
+                    //Info de cada prof por disciplina
+                    foreach (var professor in disciplineProfessor)
+                    {
+
+
+                        if (professor != null)
+                        {
+                            var oneDisciplineProfessor = new DisciplineProfessor();
+
+                            oneDisciplineInfo.Id = disciplineCounter;
+                            oneDisciplineProfessor.ProfessorId = selectedDiscipline.ProfessorId;
+                            oneDisciplineProfessor.ProfessorName = professor.ProfessorName;
+                            oneDisciplineProfessor.DateOfBirth = professor.DateOfBirth;
+                            oneDisciplineProfessor.Salary = professor.Salary;
+                            oneDisciplineInfo.DisciplineId = selectedDiscipline.DisciplineId;
+                            oneDisciplineInfo.DisciplineName = selectedDiscipline.DisciplineName;
+
+                            oneDisciplineInfo.DisciplineProfessor = oneDisciplineProfessor;
+
+
+                        }
+                    }
+                    studentCounter = 0;
+                    foreach (var grade in grades)
+                    {
+                        if (grade != null && grade.DisciplineId == selectedDiscipline.DisciplineId)
+                        {
+                            var student = dbContext.Students
+                              .Select(x => new Students
+                              {
+                                  StudentId = x.StudentId,
+                                  StudentName = x.StudentName,
+                              }).Where(x => x.StudentId == grade.StudentId).FirstOrDefault();
+                            if (student != null)
+                            {
+                                var oneDisciplineStudent = new DisciplineStudent();
+
+                                studentCounter++;
+                                oneDisciplineStudent.StudentName = student.StudentName;
+                                oneDisciplineStudent.Grade = grade.Grade;
+
+                                //Adicionar aluno à disciplina
+                                oneDisciplineInfo.DisciplineStudent.Add(oneDisciplineStudent);
+
+
+                            }
+
+                        }
+                    }
+                    //Add size of class number
+                    oneDisciplineInfo.ClassNumber = studentCounter;
+                    //Add number of disciplines to counter
+                    disciplineCounter++;
+
+                    //Add Discipline Info to the List
+                    DisciplineInfo.Add(oneDisciplineInfo);
+                }
+            }
+            else
+            {
+                //Quantas disciplinas e info
+                foreach (var discipline in disciplines)
+                {
+
+                    if (discipline != null)
+                    {
+                        var oneDisciplineInfo = new DisciplineInfo();
+                        oneDisciplineInfo.DisciplineStudent = new List<DisciplineStudent>();
+                        oneDisciplineInfo.DisciplineProfessor = new DisciplineProfessor();
+                        var disciplineProfessor = dbContext.Professors
+                           .Select(x => new Professors
+                           {
+                               ProfessorId = x.ProfessorId,
+                               ProfessorName = x.ProfessorName,
+                               DateOfBirth = x.DateOfBirth,
+                               Salary = x.Salary
+                           }).Where(x => x.ProfessorId == discipline.ProfessorId).ToList();
+
+                        //Info de cada prof por disciplina
+                        foreach (var professor in disciplineProfessor)
+                        {
+
+
+                            if (professor != null)
+                            {
+                                var oneDisciplineProfessor = new DisciplineProfessor();
+
+                                oneDisciplineInfo.Id = disciplineCounter;
+                                oneDisciplineProfessor.ProfessorId = discipline.ProfessorId;
+                                oneDisciplineProfessor.ProfessorName = professor.ProfessorName;
+                                oneDisciplineProfessor.DateOfBirth = professor.DateOfBirth;
+                                oneDisciplineProfessor.Salary = professor.Salary;
+                                oneDisciplineInfo.DisciplineId = discipline.DisciplineId;
+                                oneDisciplineInfo.DisciplineName = discipline.DisciplineName;
+
+                                oneDisciplineInfo.DisciplineProfessor = oneDisciplineProfessor;
+
+
+                            }
+                        }
+
+                        studentCounter = 0;
+                        foreach (var grade in grades)
+                        {
+                            if (grade != null && grade.DisciplineId == discipline.DisciplineId)
+                            {
+                                var student = dbContext.Students
+                                  .Select(x => new Students
+                                  {
+                                      StudentId = x.StudentId,
+                                      StudentName = x.StudentName,
+                                  }).Where(x => x.StudentId == grade.StudentId).FirstOrDefault();
+                                if (student != null)
+                                {
+                                    var oneDisciplineStudent = new DisciplineStudent();
+
+                                    studentCounter++;
+                                    oneDisciplineStudent.StudentName = student.StudentName;
+                                    oneDisciplineStudent.Grade = grade.Grade;
+
+                                    //Adicionar aluno à disciplina
+                                    oneDisciplineInfo.DisciplineStudent.Add(oneDisciplineStudent);
+
+
+                                }
+
+                            }
+                        }
+                        //Add size of class number
+                        oneDisciplineInfo.ClassNumber = studentCounter;
+                        //Add number of disciplines to counter
+                        disciplineCounter++;
+
+                        //Add Discipline Info to the List
+                        DisciplineInfo.Add(oneDisciplineInfo);
+
+
+                    }
+                }
+            }
+
+            return DisciplineInfo;
+
+
+        }
+
         public async Task<Disciplines> EditDisciplineAsync(Disciplines disciplines, int id)
         {
 
@@ -401,6 +924,95 @@ namespace ManageCollege.Repositories.Implementation
             return grades;
 
         }
+
+        //TODO
+        public async Task<List<StudentGrade>> GetStudentGradeAsync(int? id)
+        {
+
+            var disciplines = await dbContext.Disciplines.ToListAsync();
+            var grades = await dbContext.Grades.ToListAsync();
+            var students = await dbContext.Students.ToListAsync();
+            var selectedStudent = await dbContext.Students.FindAsync(id);
+            var studentName = new String("");
+            var disciplineName = new String("");
+            var studentCounter = 0;
+            var studentGrades = new List<StudentGrade>();
+            if(selectedStudent != null)
+            {
+                var studentGrade = new StudentGrade();
+                studentGrade.Id = studentCounter;
+                studentGrade.StudentId = selectedStudent.StudentId;
+                studentGrade.StudentName = selectedStudent.StudentName;
+                studentGrade.DisciplineGrade = new List<DisciplineGrade>();
+
+                //Quantas disciplinas e info
+                foreach (var discipline in disciplines)
+                {
+                    if (discipline != null)
+                    {
+                        //Info de cada nota por disciplina
+                        foreach (var grade in grades)
+                        {
+                            var studentDisciplineGrade = new DisciplineGrade();
+                            if (grade != null && grade.DisciplineId == discipline.DisciplineId && selectedStudent.StudentId == grade.StudentId)
+                            {
+                                studentDisciplineGrade.DisciplineName = discipline.DisciplineName;
+                                studentDisciplineGrade.Grade = grade.Grade;
+
+                                studentGrade.DisciplineGrade.Add(studentDisciplineGrade);
+                            }
+                        }
+                    }
+                }
+                //Add student grade to list
+                studentGrades.Add(studentGrade);
+
+            } else
+            {
+                foreach (var student in students)
+                {
+
+                    if (student != null)
+                    {
+                        studentCounter++;
+                        var studentGrade = new StudentGrade();
+                        studentGrade.Id = studentCounter;
+                        studentGrade.StudentId = student.StudentId;
+                        studentGrade.StudentName = student.StudentName;
+                        studentGrade.DisciplineGrade = new List<DisciplineGrade>();
+
+                        //Quantas disciplinas e info
+                        foreach (var discipline in disciplines)
+                        {
+                            if (discipline != null)
+                            {
+                                //Info de cada nota por disciplina
+                                foreach (var grade in grades)
+                                {
+                                    var studentDisciplineGrade = new DisciplineGrade();
+                                    if (grade != null && grade.DisciplineId == discipline.DisciplineId && student.StudentId == grade.StudentId)
+                                    {
+                                        studentDisciplineGrade.DisciplineName = discipline.DisciplineName;
+                                        studentDisciplineGrade.Grade = grade.Grade;
+
+                                        studentGrade.DisciplineGrade.Add(studentDisciplineGrade);
+                                    }
+                                }
+                            }
+                        }
+                        //Add student grade to list
+                        studentGrades.Add(studentGrade);
+
+                    }
+
+                }
+
+            }
+
+            return studentGrades;
+
+        }
+
         public async Task<Grades> GetGradeAsync(int id)
         {
             var students = await dbContext.Grades.ToListAsync();

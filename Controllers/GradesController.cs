@@ -55,7 +55,17 @@ namespace ManageCollege.Controllers
             return Ok(grades);
 
         }
+        [HttpPost]
+        [Route("students")]
+        public async Task<IActionResult> GetStudentGradeAsync([FromBody]int? id)
+        {
 
+            var grades = await gradesRepository.GetStudentGradeAsync(id);
+
+            return Ok(grades);
+
+        }
+        
         [HttpGet]
         [Route("{id:int}")]
         public async Task<IActionResult> GetGrade([FromRoute] int id)
