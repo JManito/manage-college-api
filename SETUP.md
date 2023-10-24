@@ -30,8 +30,7 @@ This document provides step-by-step instructions on how to set up and run the AS
 *We are using Entity Framework Code First, you need to create or update the database schema. Use the following commands in the Package Manager Console:*
 ```
 > Enable-Migrations
-> Add-Migration InitialCreate
-> Update-Database
+> Update-Database -TargetMigration 20231024184553_CreateDbAndSeedData
 ```
 
 ### Build and Run the Application
