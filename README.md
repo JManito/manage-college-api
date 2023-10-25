@@ -11,7 +11,7 @@ armazena o nome, data de nascimento e salário dos professores. Para os alunos g
 nome, data de nascimento, número de matrícula e a nota dos alunos nas disciplinas matriculadas.
 
 # *Funcionalidades*:
-- Cria um CRUD das entidades (Cursos, Disciplinas, Professor, Aluno, Notas)
+- CRUD das entidades (Cursos, Disciplinas, Professor, Aluno, Notas)
 - Lista os cursos e mostra o número de professores, alunos e média de suas notas para cada curso
 - Lista as disciplinas e mostra as informações do professor, número de alunos e suas notas para cada
 disciplina
