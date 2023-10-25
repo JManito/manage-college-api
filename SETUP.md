@@ -11,7 +11,7 @@ This document provides step-by-step instructions on how to set up and run the Ma
 ### Clone the Repository
 1. git clone https://github.com/JManito/manage-college-api.git
 1. cd manage-college-api
-2. 
+
 ### Configure the Database
 1. Open SQL Server Management Studio (SSMS).
 1. Connect to your LocalDB instance.
