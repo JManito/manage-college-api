@@ -11,12 +11,13 @@ This document provides step-by-step instructions on how to set up and run the Ma
 ### Clone the Repository
 1. git clone https://github.com/JManito/manage-college-api.git
 1. cd manage-college-api
+2. 
 ### Configure the Database
 1. Open SQL Server Management Studio (SSMS).
 1. Connect to your LocalDB instance.
-1. Create a new database or use an existing one.
-1. Update the connection string in *appsettings.json* to point to your LocalDB
-```
+
+### Update the connection string in *appsettings.json* to point to your LocalDB
+```JSON
 {
   "ConnectionStrings": {
     "ManageCollegeConnectionSting": "Server={your-server};Database=College;TrustServerCertificate=True;Trusted_Connection=True"
@@ -25,7 +26,7 @@ This document provides step-by-step instructions on how to set up and run the Ma
 ```
 
 ### Database Migrations
-*We are using Entity Framework Code First, you need to create or update the database schema. Use the following commands in the Package Manager Console:*
+*We are using Entity Framework Code First, you need to create or update the database schema. Use the following commands in the [Package Manager Console](https://learn.microsoft.com/en-us/nuget/consume-packages/install-use-packages-powershell):*
 ```
 > Enable-Migrations
 > Update-Database -TargetMigration 20231024184553_CreateDbAndSeedData
