@@ -4,6 +4,11 @@
     <TargetFramework>net6.0</TargetFramework>
     <Nullable>enable</Nullable>
     <ImplicitUsings>enable</ImplicitUsings>
+    <Version>1.0.0</Version>
+    <Authors>João Lopes</Authors>
+    <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
+    <PackageReadmeFile>README.md</PackageReadmeFile>
+    <RepositoryUrl>https://github.com/JManito/manage-college-api</RepositoryUrl>
   </PropertyGroup>
 
   <ItemGroup>
@@ -27,3 +32,4 @@
   </ItemGroup>
 
 </Project>
+ 
