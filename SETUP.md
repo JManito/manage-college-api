@@ -9,10 +9,8 @@ This document provides step-by-step instructions on how to set up and run the Ma
 - .NET Framework
 
 ### Clone the Repository
-1. git clone <repository_url>
-1. cd <project_directory>
-1. Replace <repository_url> with the URL of your Git repository, and <project_directory> with the directory name you want to create for the project.
-
+1. git clone https://github.com/JManito/manage-college-api.git
+1. cd manage-college-api
 ### Configure the Database
 1. Open SQL Server Management Studio (SSMS).
 1. Connect to your LocalDB instance.
