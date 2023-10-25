@@ -1,6 +1,6 @@
 # manage-college-api
 # Project Setup
-This document provides step-by-step instructions on how to set up and run the ASP.NET MVC 5 API with SQL Server and Entity Framework 6 using LocalDB. Before you begin, ensure that you have Git, Visual Studio, and SQL Server installed on your system.
+This document provides step-by-step instructions on how to set up and run the Manage College API. Before you begin, ensure that you have Git, Visual Studio, and SQL Server installed on your system.
 
 ### Prerequisites
 - Git
